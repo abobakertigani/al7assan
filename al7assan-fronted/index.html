@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>الإحسان - النظام الإداري الذكي</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    /* --- الألوان الأساسية --- */
+    :root {
+      --primary: #1e88e5;
+      --primary-dark: #1565c0;
+      --secondary: #f5f7fa;
+      --dark: #2c3e50;
+      --gray: #95a5a6;
+      --light: #ecf0f1;
+      --accent: #00acc1;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: var(--dark);
+      line-height: 1.7;
+    }
+
+    /* --- الهيدر --- */
+    header {
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+      padding: 1rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+    }
+
+    nav ul li {
+      margin: 0 1rem;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: var(--primary);
+    }
+
+    .cta-btn {
+      background-color: var(--primary);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .cta-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* --- القسم الأول (Hero) --- */
+    .hero {
+      padding: 120px 5% 80px;
+      background: linear-gradient(135deg, var(--secondary) 0%, #d4e6f1 100%);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+      color: var(--dark);
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 1s forwards;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--gray);
+      max-width: 700px;
+      margin: 0 auto 2rem;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 1s 0.3s forwards;
+    }
+
+    .hero-buttons {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 1s 0.6s forwards;
+    }
+
+    .btn {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(30, 136, 229, 0.3);
+    }
+
+    .btn-secondary {
+      background-color: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--light);
+      transform: translateY(-3px);
+    }
+
+    /* --- القسم: الخدمات --- */
+    .services {
+      padding: 100px 5%;
+      text-align: center;
+    }
+
+    .services h2 {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+    }
+
+    .services p {
+      max-width: 700px;
+      margin: 0 auto 50px;
+      color: var(--gray);
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 50px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      width: 350px;
+      padding: 30px;
+      text-align: right;
+      transition: transform 0.3s, box-shadow 0.3s;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+    }
+
+    .card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .card .icon {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .card ul {
+      list-style: none;
+      margin: 20px 0;
+      text-align: right;
+    }
+
+    .card ul li {
+      padding: 8px 0;
+      border-bottom: 1px dashed #eee;
+      color: #555;
+    }
+
+    .card ul li::before {
+      content: "✓";
+      color: var(--accent);
+      margin-left: 8px;
+      font-weight: bold;
+    }
+
+    .card .price {
+      font-size: 1.2rem;
+      color: var(--dark);
+      font-weight: 600;
+      margin: 15px 0;
+    }
+
+    .card a {
+      display: block;
+      text-align: center;
+      background-color: var(--primary);
+      color: white;
+      padding: 12px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 15px;
+      transition: background 0.3s;
+    }
+
+    .card a:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* --- كيف يعمل --- */
+    .how-it-works {
+      padding: 100px 5%;
+      background-color: var(--secondary);
+      text-align: center;
+    }
+
+    .how-it-works h2 {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+    }
+
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 50px;
+    }
+
+    .step {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      width: 220px;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .step.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      line-height: 50px;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+    }
+
+    .step h4 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+
+    /* --- التقييمات --- */
+    .testimonials {
+      padding: 100px 5%;
+      text-align: center;
+    }
+
+    .testimonial {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      font-style: italic;
+      color: #555;
+      position: relative;
+    }
+
+    .quote {
+      font-size: 3rem;
+      color: var(--primary);
+      opacity: 0.2;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+    }
+
+    .client {
+      font-weight: 600;
+      margin-top: 15px;
+      color: var(--primary);
+    }
+
+    /* --- تواصل معنا --- */
+    .contact {
+      padding: 100px 5%;
+      background-color: var(--dark);
+      color: white;
+      text-align: center;
+    }
+
+    .contact h2 {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-form {
+      max-width: 600px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      color: var(--dark);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: right;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .form-group select, .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .form-group textarea {
+      height: 120px;
+    }
+
+    .submit-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* --- التذييل --- */
+    footer {
+      background-color: #1a252f;
+      color: white;
+      text-align: center;
+      padding: 40px 5%;
+    }
+
+    .footer-links {
+      margin: 20px 0;
+    }
+
+    .footer-links a {
+      color: #bdc3c7;
+      margin: 0 15px;
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    .social {
+      margin: 20px 0;
+    }
+
+    .social a {
+      color: white;
+      margin: 0 10px;
+      font-size: 1.3rem;
+    }
+
+    /* --- الحركات --- */
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* --- استجابة الجوال --- */
+    @media (max-width: 768px) {
+      nav ul {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .card, .step {
+        width: 100%;
+        max-width: 350px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- الهيدر -->
+  <header>
+    <div class="logo">الإحسان</div>
+    <nav>
+      <ul>
+        <li><a href="#services">الخدمات</a></li>
+        <li><a href="#how-it-works">كيف يعمل</a></li>
+        <li><a href="#testimonials">آراء العملاء</a></li>
+        <li><a href="#contact">اتصل بنا</a></li>
+        <li><a href="#" class="cta-btn">ابدأ الآن</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- القسم الأول -->
+  <section class="hero">
+    <h1>"الإحسان" – نظامك الإداري الذكي من أول يوم</h1>
+    <p>أتمِت إدارة شركتك بالكامل. جمع بيانات، تحليل، تخطيط، تنفيذ — كل شيء في لوحة تحكم واحدة.</p>
+    <div class="hero-buttons">
+      <a href="#services" class="btn btn-primary">جرب النظام مجانًا</a>
+      <a href="#how-it-works" class="btn btn-secondary">شاهد العرض التوضيحي</a>
+    </div>
+  </section>
+
+  <!-- الخدمات -->
+  <section class="services" id="services">
+    <h2>نُبسّط إدارة شركتك بثلاث باقات مرنة</h2>
+    <p>اختر الباقة التي تناسب مرحلة نمو شركتك، من تجربة مجانية إلى نظام متكامل مخصص.</p>
+
+    <div class="cards">
+      <!-- الباقة التجريبية -->
+      <div class="card">
+        <div class="icon"><i class="fas fa-gift"></i></div>
+        <h3>الباقة التجريبية</h3>
+        <p>اختر نظامًا واحدًا مجانًا لمدة 3 أشهر</p>
+        <ul>
+          <li>اختيار نظام واحد من: HR، مالية، عملاء، مبيعات</li>
+          <li>لوحة تحكم مبسطة</li>
+          <li>تحليل بيانات أساسي</li>
+          <li>تنبيهات يومية</li>
+          <li>80% من قدرات الباقة المدفوعة</li>
+        </ul>
+        <div class="price">مجانًا لمدة 3 أشهر</div>
+        <a href="#contact">اختر نظامك المجاني</a>
+      </div>
+
+      <!-- الباقة الأساسية -->
+      <div class="card">
+        <div class="icon"><i class="fas fa-leaf"></i></div>
+        <h3>الباقة الأساسية</h3>
+        <p>مثالية للشركات الناشئة</p>
+        <ul>
+          <li>جميع الأقسام المشتركة</li>
+          <li>تكامل بين الأنظمة</li>
+          <li>لوحة تحكم مركزية</li>
+          <li>تقارير أسبوعية</li>
+          <li>دعم فني أساسي</li>
+        </ul>
+        <div class="price">ابتداءً من 99 ريال/نظام/شهر</div>
+        <a href="#contact">ابدأ الباقة الأساسية</a>
+      </div>
+
+      <!-- الباقة المخصصة -->
+      <div class="card">
+        <div class="icon"><i class="fas fa-cog"></i></div>
+        <h3>الباقة المخصصة</h3>
+        <p>مخصصة لكل مجال عمل</p>
+        <ul>
+          <li>أنظمة متخصصة (صناعة، زراعة، تعليم، إنشاءات...)</li>
+          <li>ذكاء اصطناعي متقدم</li>
+          <li>دعم فني 24/7</li>
+          <li>تخصيص كامل</li>
+          <li>تدريب الفرق</li>
+        </ul>
+        <div class="price">حسب الطلب</div>
+        <a href="#contact">تواصل لتصميم باقتك</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- كيف يعمل -->
+  <section class="how-it-works" id="how-it-works">
+    <h2>كيف يعمل النظام؟</h2>
+    <p>4 خطوات بسيطة لتحويل شركتك إلى منظومة ذكية</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h4>سجّل في "الإحسان"</h4>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h4>اختر الباقة المناسبة</h4>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h4>دمج البيانات</h4>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <h4>شغّل النظام الذكي</h4>
+      </div>
+    </div>
+  </section>
+
+  <!-- آراء العملاء -->
+  <section class="testimonials" id="testimonials">
+    <h2>آراء عملائنا</h2>
+    <div class="testimonial">
+      <div class="quote">"</div>
+      <p>منذ استخدامي لباقة المبيعات في "الإحسان"، زادت مبيعاتي 40% بسبب التحليلات الدقيقة والتوصيات الذكية.</p>
+      <div class="client">— أحمد، مدير متجر إلكتروني</div>
+    </div>
+    <div class="testimonial">
+      <div class="quote">"</div>
+      <p>الباقة المخصصة ساعدتنا في إدارة مزرعة الدواجن بكفاءة عالية. النظام ينبهني قبل نفاد العلف أو تأخر التطعيم.</p>
+      <div class="client">— سارة، مديرة مزرعة حيوانية</div>
+    </div>
+  </section>
+
+  <!-- تواصل معنا -->
+  <section class="contact" id="contact">
+    <h2>مستعد لتحويل شركتك؟</h2>
+    <p>املأ النموذج وسنتواصل معك خلال 24 ساعة</p>
+
+    <div class="contact-form">
+    <form id="contactForm">
+      <div class="form-group">
+        <label for="name">الاسم الكامل</label>
+        <input type="text" id="name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">البريد الإلكتروني</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">رقم الجوال</label>
+        <input type="tel" id="phone" required>
+      </div>
+      <div class="form-group">
+        <label for="field">مجال عملك</label>
+        <select id="field">
+          <option value="manufacturing">الصناعات التحويلية</option>
+          <option value="trading">التجارة</option>
+          <option value="agriculture">الاستزراع</option>
+          <option value="hse">الصحة والسلامة</option>
+          <option value="education">التعليم</option>
+          <option value="construction">الإنشاءات</option>
+          <option value="energy">الطاقة</option>
+          <option value="logistics">النقل واللوجستيات</option>
+          <option value="tourism">السياحة والفندقة</option>
+          <option value="security">السكيوريتي</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="package">الباقة المطلوبة</label>
+        <select id="package">
+        <option value="trial">الباقة التجريبية</option>
+        <option value="basic">الباقة الأساسية</option>
+        <option value="custom">الباقة المخصصة</option>
+    </select>
+   </div>
+   <div class="form-group">
+     <label for="message">رسالتك</label>
+     <textarea id="message"></textarea>
+   </div>
+   <button type="submit" class="submit-btn">أرسل الطلب</button>
+  </form>
+    </div>
+  </section>
+
+  <!-- التذييل -->
+  <footer>
+    <div class="logo" style="font-size: 2rem; margin-bottom: 10px;">الإحسان</div>
+    <p>نظامك الإداري الذكي من أول يوم</p>
+    <div class="footer-links">
+      <a href="#">من نحن</a>
+      <a href="#">الخدمات</a>
+      <a href="#">الخصوصية</a>
+      <a href="#">الشروط</a>
+    </div>
+    <div class="social">
+      <a href="#"><i class="fab fa-linkedin"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fab fa-youtube"></i></a>
+    </div>
+    <p>&copy; 2025 شركة الإحسان. جميع الحقوق محفوظة.</p>
+  </footer>
+
+  <script>
+      // إرسال النموذج إلى Backend
+document.getElementById('contactForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const formData = {
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    phone: document.getElementById('phone').value,
+    field: document.getElementById('field').value,
+    package: document.getElementById('package').value,
+    message: document.getElementById('message').value,
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+
+    if (response.ok) {
+      alert('تم إرسال طلبك بنجاح! سنتواصل معك قريبًا.');
+      document.getElementById('contactForm').reset();
+    } else {
+      alert('حدث خطأ أثناء الإرسال. حاول لاحقًا.');
+    }
+  } catch (error) {
+    console.error('خطأ في الاتصال:', error);
+    alert('تعذر الاتصال بالنظام. تأكد من تشغيل الخادم.');
+  }
+});    
+  </script>
+
+</body>
+</html>

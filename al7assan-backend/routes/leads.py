@@ -12,7 +12,7 @@ models.Base.metadata.create_all(bind=database.engine)
 
 @router.post("/leads")
 async def capture_lead(
-    lead_ dict,
+    lead_dict,
     db: Session = Depends(database.get_db)
 ):
     try:

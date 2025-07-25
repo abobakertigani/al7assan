@@ -2,6 +2,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import auth, hr, finance  # سننشئها لاحقًا
+# في main.py، بعد استيراد النماذج
+from database import engine
+from models import Base
+
+# إنشاء جميع الجداول
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="نظام الإحسان - Backend", version="1.0")
 

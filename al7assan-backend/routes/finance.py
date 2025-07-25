@@ -2,8 +2,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-import database
-import models
+from database import get_db
+from models import Invoice
+from services.finance_analyzer import predict_cash_flow
 from schemas.finance import InvoiceCreate, InvoiceResponse
 
 router = APIRouter(prefix="/finance", tags=["Finance"])
@@ -48,6 +49,26 @@ def get_invoice(inv_id: int, db: Session = Depends(database.get_db)):
     if not inv:
         raise HTTPException(status_code=404, detail="الفاتورة غير موجودة")
     return inv
+
+@router.get("/cash-flow-prediction")
+def get_cash_flow_prediction(company_id: int, db: Session = Depends(get_db)):
+    """
+    تنبؤ بالسيولة النقدية للـ 30 يومًا القادمة
+    """
+    invoices = db.query(Invoice).filter(Invoice.company_id == company_id).all()
+
+    data = []
+    for inv in invoices:
+        if inv.due_date:
+            data.append({
+                "date": inv.due_date.isoformat(),
+                "amount": inv.amount,
+                "status": inv.status
+            })
+
+    result = predict_cash_flow(data)
+
+    return result
 
 @router.put("/invoices/{inv_id}", response_model=InvoiceResponse)
 def update_invoice(inv_id: int, invoice: InvoiceCreate, db: Session = Depends(database.get_db)):

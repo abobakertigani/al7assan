@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import auth, hr, finance  # سننشئها لاحقًا
-# في main.py، بعد استيراد النماذج
+from routes import inventory, support, production, agent
 from database import engine
 from models import Base
 
@@ -26,6 +26,11 @@ from routes import leads
 app.include_router(auth.router, prefix="/api")
 app.include_router(hr.router, prefix="/api")
 app.include_router(finance.router, prefix="/api")
-app.include_router(leads.router, prefix="/api")  # ← أضف هذا@app.get("/")
+app.include_router(leads.router, prefix="/api")
+app.include_router(inventory.router, prefix="/api")
+app.include_router(support.router, prefix="/api")
+app.include_router(production.router, prefix="/api")
+app.include_router(agent.router, prefix="/api") 
+
 def root():
     return {"message": "مرحبًا بكم في نظام الإحسان - Backend يعمل!"}

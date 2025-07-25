@@ -649,43 +649,136 @@
     </div>
     <p>&copy; 2025 شركة الإحسان. جميع الحقوق محفوظة.</p>
   </footer>
+<!-- نافذة تسجيل الدخول -->
+<div id="loginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 30px; border-radius: 15px; width: 400px; text-align: right;">
+    <h3>تسجيل الدخول</h3>
+    <form id="loginForm">
+      <div style="margin-bottom: 15px;">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="loginEmail" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label>كلمة المرور</label>
+        <input type="password" id="loginPassword" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px;">
+      </div>
+      <button type="submit" style="background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 30px; width: 100%;">تسجيل الدخول</button>
+      <p style="text-align: center; margin-top: 10px;">
+        <a href="#" id="showSignup" style="color: var(--primary);">إنشاء حساب جديد</a>
+      </p>
+    </form>
+  </div>
+</div>
 
+<!-- نافذة التسجيل -->
+<div id="signupModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 30px; border-radius: 15px; width: 400px; text-align: right;">
+    <h3>إنشاء حساب</h3>
+    <form id="signupForm">
+      <div style="margin-bottom: 10px;">
+        <label>الاسم الكامل</label>
+        <input type="text" id="signupName" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px;">
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="signupEmail" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px;">
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label>كلمة المرور</label>
+        <input type="password" id="signupPassword" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px;">
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label>اسم الشركة</label>
+        <input type="text" id="companyName" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px;">
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label>هاتف الشركة (اختياري)</label>
+        <input type="text" id="companyPhone" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px;">
+      </div>
+      <button type="submit" style="background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 30px; width: 100%;">إنشاء الحساب</button>
+      <p style="text-align: center; margin-top: 10px;">
+        <a href="#" id="showLogin" style="color: var(--primary);">لدي حساب مسبقًا</a>
+      </p>
+    </form>
+  </div>
+</div>
   <script>
-      // إرسال النموذج إلى Backend
-document.getElementById('contactForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-
-  const formData = {
-    name: document.getElementById('name').value,
-    email: document.getElementById('email').value,
-    phone: document.getElementById('phone').value,
-    field: document.getElementById('field').value,
-    package: document.getElementById('package').value,
-    message: document.getElementById('message').value,
-    timestamp: new Date().toISOString()
+  // عرض/إخفاء النماذج
+  document.getElementById('showSignup').onclick = () => {
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('signupModal').style.display = 'flex';
   };
 
-  try {
-    const response = await fetch('http://127.0.0.1:8000/api/leads', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    });
+  document.getElementById('showLogin').onclick = () => {
+    document.getElementById('signupModal').style.display = 'none';
+    document.getElementById('loginModal').style.display = 'flex';
+  };
 
-    if (response.ok) {
-      alert('تم إرسال طلبك بنجاح! سنتواصل معك قريبًا.');
-      document.getElementById('contactForm').reset();
-    } else {
-      alert('حدث خطأ أثناء الإرسال. حاول لاحقًا.');
+  // تسجيل الدخول
+  document.getElementById('loginForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = 'dashboard.html';
+      } else {
+        alert('خطأ في الدخول: ' + (data.detail || 'بيانات خاطئة'));
+      }
+    } catch (error) {
+      alert('تعذر الاتصال بالنظام');
     }
-  } catch (error) {
-    console.error('خطأ في الاتصال:', error);
-    alert('تعذر الاتصال بالنظام. تأكد من تشغيل الخادم.');
-  }
-});    
-  </script>
+  };
+
+  // إنشاء حساب
+  document.getElementById('signupForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = {
+      name: document.getElementById('signupName').value,
+      email: document.getElementById('signupEmail').value,
+      password: document.getElementById('signupPassword').value,
+      company_name: document.getElementById('companyName').value,
+      company_phone: document.getElementById('companyPhone').value
+    };
+
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = 'dashboard.html';
+      } else {
+        alert('خطأ: ' + (data.detail || 'فشل في الإنشاء'));
+      }
+    } catch (error) {
+      alert('تعذر الاتصال بالنظام');
+    }
+  };
+
+  // عرض نافذة الدخول تلقائيًا عند الضغط على "ابدأ الآن"
+  document.querySelectorAll('.cta-btn, [href="#contact"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('loginModal').style.display = 'flex';
+    });
+  });
+</script>
 
 </body>
 </html>

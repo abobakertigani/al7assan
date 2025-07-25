@@ -5,6 +5,7 @@ from typing import List
 import database
 import models
 from schemas.hr import EmployeeCreate, EmployeeResponse
+from services.hr_analyzer import get_contract_alerts, suggest_promotions
 
 router = APIRouter(prefix="/hr", tags=["HR"])
 
@@ -46,6 +47,17 @@ def get_employee(emp_id: int, db: Session = Depends(database.get_db)):
     if not emp:
         raise HTTPException(status_code=404, detail="الموظف غير موجود")
     return emp
+
+
+@router.get("/hr-dashboard")
+def get_hr_dashboard(company_id: int, db: Session = Depends(get_db)):
+    employees = db.query(Employee).filter(Employee.company_id == company_id).all()
+
+    return {
+        "total_employees": len(employees),
+        "contract_alerts": get_contract_alerts(employees),
+        "promotion_suggestions": suggest_promotions(employees)
+    }
 
 @router.put("/employees/{emp_id}", response_model=EmployeeResponse)
 def update_employee(emp_id: int, employee: EmployeeCreate, db: Session = Depends(database.get_db)):

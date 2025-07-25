@@ -158,13 +158,12 @@
 
   <!-- المحتوى الرئيسي -->
   <main>
+	<h2 class="page-title">مرحبًا بك في لوحة التحكم</h2>
     <!-- تنبؤ السيولة -->
 		<div class="kpi">
 		  <h3>السيولة المتوقعة (30 يوم)</h3>
 	  <div class="value" id="cash-prediction">جاري التحميل...</div>
 		</div>
-    <h2 class="page-title">مرحبًا بك في لوحة التحكم</h2>
-
     <!-- إحصائيات سريعة -->
     <div class="kpi-cards">
       <div class="kpi">
@@ -184,6 +183,52 @@
         <div class="value" style="color: var(--success);" id="new-leads">0</div>
       </div>
     </div>
+<!-- تنبيهات المخزون -->
+<div class="table-container">
+  <h3>تنبيهات المخزون المنخفض</h3>
+  <table id="inventory-alerts">
+    <thead>
+      <tr>
+        <th>المنتج</th>
+        <th>الكمية الحالية</th>
+        <th>الحد الأدنى</th>
+        <th>الإجراء المقترح</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+<!-- تذاكر الدعم -->
+<div class="table-container">
+  <h3>أحدث تذاكر دعم العملاء</h3>
+  <table id="support-tickets">
+    <thead>
+      <tr>
+        <th>العميل</th>
+        <th>النوع</th>
+        <th>الوصف</th>
+        <th>الحالة</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+	<!-- تنبيهات الصيانة -->
+<div class="kpi-cards">
+  <div class="kpi" style="background: #fff8e1;">
+    <h3>ماكينات تحتاج صيانة</h3>
+    <div id="maintenance-alert" style="font-size: 1.5rem; color: #f57c00;">جاري التحقق...</div>
+  </div>
+</div>
+<!-- شات بوت المساعد الرقمي -->
+<div class="table-container">
+  <h3>المساعد الرقمي 🤖</h3>
+  <div id="chatbox" style="height: 200px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; background: #f9f9f9; border-radius: 8px;"></div>
+  <div style="display: flex; gap: 10px;">
+    <input type="text" id="userCommand" placeholder="اطرح سؤالاً أو أصدر أمرًا..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+    <button onclick="sendCommand()" style="background: #1e88e5; color: white; border: none; padding: 10px 20px; border-radius: 8px;">إرسال</button>
+  </div>
+</div>
 
     <!-- الجداول -->
     <div class="tables">
@@ -249,7 +294,142 @@ async function fetchCashPrediction(companyId) {
     document.getElementById('cash-prediction').textContent = "خطأ";
   }
 }
+// جلب تنبيهات المخزون
+async function fetchInventoryAlerts(companyId) {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/inventory/low-stock?company_id=${companyId}`);
+    const data = await res.json();
+    const tbody = document.getElementById('inventory-alerts').querySelector('tbody');
+    tbody.innerHTML = '';
 
+    if (data.alerts && data.alerts.length > 0) {
+      data.alerts.forEach(alert => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${alert.product}</td>
+          <td>${alert.current}</td>
+          <td>${alert.min}</td>
+          <td>طلب ${Math.round(alert.suggest_order)} وحدة</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="4">لا توجد تنبيهات مخزون</td>';
+      tbody.appendChild(tr);
+    }
+  } catch (error) {
+    console.error('فشل في جلب تنبيهات المخزون:', error);
+    const tbody = document.getElementById('inventory-alerts').querySelector('tbody');
+    tbody.innerHTML = '<tr><td colspan="4">خطأ في الاتصال</td></tr>';
+  }
+}
+// جلب تذاكر الدعم
+async function fetchSupportTickets(companyId) {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/support?company_id=${companyId}`);
+    const tickets = await res.json();
+    const tbody = document.getElementById('support-tickets').querySelector('tbody');
+    tbody.innerHTML = '';
+
+    tickets.slice(0, 5).forEach(ticket => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${ticket.customer_name}</td>
+        <td><span style="color: ${
+          ticket.category === 'finance' ? 'blue' :
+          ticket.category === 'technical' ? 'orange' : 'green'
+        }">${ticket.category}</span></td>
+        <td>${ticket.description.substring(0, 50)}...</td>
+        <td><span style="color: ${ticket.status === 'open' ? 'red' : 'gray'}">${ticket.status === 'open' ? 'مفتوحة' : 'مغلقة'}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('فشل في جلب التذاكر:', error);
+    const tbody = document.getElementById('support-tickets').querySelector('tbody');
+    tbody.innerHTML = '<tr><td colspan="4">خطأ في الاتصال</td></tr>';
+  }
+}
+// جلب تنبيهات الصيانة
+async function fetchMaintenanceAlert(companyId) {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/production/maintenance-alert?company_id=${companyId}`);
+    const data = await res.json();
+    const el = document.getElementById('maintenance-alert');
+
+    if (data.high_risk_machines && data.high_risk_machines.length > 0) {
+      el.innerHTML = data.high_risk_machines.join(', ') + ' 🔧';
+    } else {
+      el.innerHTML = 'لا توجد ماكينات معرضة للخطر';
+    }
+  } catch (error) {
+    console.error('فشل في جلب تنبيهات الصيانة:', error);
+    document.getElementById('maintenance-alert').textContent = 'خطأ';
+  }
+}
+// دالة إرسال الأمر إلى المساعد
+async function sendCommand() {
+  const input = document.getElementById('userCommand');
+  const text = input.value.trim();
+  if (!text) return;
+
+  // عرض رسالة المستخدم
+  addChatMessage("أنت", text, "blue");
+
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/agent/command', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, user_role: "admin", company_id: 1 })
+    });
+
+    const data = await res.json();
+    const reply = data.interpreted.action === "unknown"
+      ? "لا أفهم هذا الأمر. جرب: 'أرسل تقرير المبيعات' أو 'كم عدد الموظفين؟'"
+      : `تم تحليل الأمر: ${data.interpreted.action}`;
+
+    addChatMessage("الإحسان", reply, "green");
+  } catch (error) {
+    addChatMessage("الإحسان", "تعذر الاتصال بالمساعد.", "red");
+  }
+
+  input.value = "";
+}
+
+// إضافة رسالة إلى الشات
+function addChatMessage(sender, message, color) {
+  const chatbox = document.getElementById('chatbox');
+  const msg = document.createElement('div');
+  msg.style.padding = "8px";
+  msg.style.margin = "4px 0";
+  msg.style.borderRadius = "8px";
+  msg.style.backgroundColor = sender === "أنت" ? "#e3f2fd" : "#e8f5e8";
+  msg.style.color = color;
+  msg.style.maxWidth = "80%";
+  msg.style.marginLeft = sender === "أنت" ? "auto" : "0";
+  msg.style.textAlign = sender === "أنت" ? "left" : "right";
+  msg.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  chatbox.appendChild(msg);
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+// رسالة ترحيب
+window.onload = function() {
+  const user = localStorage.getItem('user');
+  if (!user) {
+    window.location.href = 'index.html';
+  } else {
+    const userData = JSON.parse(user);
+    fetchData();
+    fetchInventoryAlerts(userData.company_id);
+    fetchSupportTickets(userData.company_id);
+    fetchMaintenanceAlert(userData.company_id);
+    
+    // رسالة ترحيب في الشات
+    addChatMessage("الإحسان", "مرحبًا! أنا مساعدك الرقمي. كيف يمكنني مساعدتك اليوم؟", "green");
+  }
+};
 // استدعاء الدالة بعد جلب البيانات
 // داخل window.onload أو بعد login
 fetchCashPrediction(user.company_id);

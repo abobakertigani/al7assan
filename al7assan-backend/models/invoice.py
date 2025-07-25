@@ -1,6 +1,6 @@
 # models/invoice.py
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
-from database import Base
+from models import Base 
 
 class Invoice(Base):
     __tablename__ = "invoices"

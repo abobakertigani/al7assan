@@ -1,6 +1,6 @@
 # models/employee.py
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
-from database import Base
+from models import Base  # ✅ استيراد Base من models/__init__.py
 
 class Employee(Base):
     __tablename__ = "employees"

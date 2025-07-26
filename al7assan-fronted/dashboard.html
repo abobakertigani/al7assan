@@ -183,6 +183,38 @@
         <div class="value" style="color: var(--success);" id="new-leads">0</div>
       </div>
     </div>
+	  <!-- تقرير الجودة -->
+<div class="kpi" style="background: #f3e5f5;">
+  <h3>جودة الإنتاج</h3>
+  <div id="quality-report">
+    جاري التحقق...
+  </div>
+</div>
+	  <!-- حالة النظام -->
+<div class="kpi-cards">
+  <div class="kpi" style="background: #e8f5e8;">
+    <h3>حالة النظام 🖥️</h3>
+    <div id="system-health">
+      جاري التحقق...
+    </div>
+  </div>
+</div>
+	  <!-- التقرير التنفيذي -->
+<div class="table-container" style="border: 2px solid #1e88e5; background: #e3f2fd;">
+  <h3>📋 التقرير التنفيذي اليومي</h3>
+  <div id="executive-report">
+    جاري إعداد التقرير...
+  </div>
+</div>
+	  
+	  <!-- تحليل التسويق -->
+<div class="table-container">
+  <h3>تحليل العملاء 🎯</h3>
+  <div id="marketing-insights">
+    <p>جاري تحميل التحليل...</p>
+  </div>
+</div>
+	  
 <!-- تنبيهات المخزون -->
 <div class="table-container">
   <h3>تنبيهات المخزون المنخفض</h3>
@@ -278,6 +310,107 @@
   </footer>
 
   <script>
+	  // جلب تحليل التسويق
+async function fetchMarketingInsights(companyId) {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/marketing/insights?company_id=${companyId}`);
+    const data = await res.json();
+    const container = document.getElementById('marketing-insights');
+    
+    if (data.customer_segments) {
+      container.innerHTML = `
+        <p><strong>العملاء النشطون:</strong> ${data.customer_segments.active}</p>
+        <p><strong>العملاء النائمون:</strong> ${data.customer_segments.dormant}</p>
+        <p><strong>العملاء المميزون (VIP):</strong> ${data.customer_segments.vip}</p>
+        <h4>التوصيات:</h4>
+        <ul style="text-align: right;">
+          ${data.recommendations.map(r => `<li>${r}</li>`).join('')}
+        </ul>
+      `;
+    } else {
+      container.innerHTML = '<p>لا توجد بيانات كافية بعد.</p>';
+    }
+  } catch (error) {
+    console.error('فشل في جلب تحليل التسويق:', error);
+    document.getElementById('marketing-insights').innerHTML = '<p style="color: red;">خطأ في الاتصال</p>';
+  }
+}
+	  // جلب تقرير الجودة
+async function fetchQualityReport(companyId) {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/quality/report?company_id=${companyId}`);
+    const data = await res.json();
+    const el = document.getElementById('quality-report');
+    
+    if (data.total_defects > 0) {
+      el.innerHTML = `
+        <p>⚠️ ${data.total_defects} عيبًا تم اكتشافه</p>
+        <p>السبب الرئيسي: <strong>${data.top_issue}</strong></p>
+        <p>التوصية: ${data.recommendation}</p>
+      `;
+    } else {
+      el.innerHTML = '<p style="color: green;">✅ لا توجد مشكلات في الجودة</p>';
+    }
+  } catch (error) {
+    console.error('فشل في جلب تقرير الجودة:', error);
+    document.getElementById('quality-report').textContent = 'خطأ في الاتصال';
+  }
+}
+	  // جلب حالة النظام
+async function fetchSystemHealth() {
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/it/health');
+    const health = await res.json();
+    const el = document.getElementById('system-health');
+    
+    const statusColor = health.status === 'مستقر' ? 'green' : 'red';
+    
+    el.innerHTML = `
+      <p>CPU: ${health.cpu_usage}%</p>
+      <p>الذاكرة: ${health.memory_usage}%</p>
+      <p>القرص: ${health.disk_usage}%</p>
+      <p>الحالة: <span style="color: ${statusColor};">${health.status}</span></p>
+    `;
+  } catch (error) {
+    console.error('فشل في جلب حالة النظام:', error);
+    document.getElementById('system-health').textContent = 'غير متصل';
+  }
+}
+
+// جلب التنبيهات
+async function fetchSystemAlerts() {
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/it/alerts');
+    const data = await res.json();
+    const count = data.alerts.length;
+    if (count > 0) {
+      alert(`⚠️ ${count} تنبيهات نظام: ${data.alerts.join(', ')}`);
+    }
+  } catch (error) {
+    console.error('فشل في جلب تنبيهات النظام');
+  }
+}
+	  // جلب التقرير التنفيذي
+async function fetchExecutiveReport(companyId) {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/executive/daily-report?company_id=${companyId}`);
+    const report = await res.json();
+    const el = document.getElementById('executive-report');
+    
+    el.innerHTML = `
+      <p><strong>التاريخ:</strong> ${report.date}</p>
+      <p><strong>القضايا الحرجة:</strong> ${report.critical_issues}</p>
+      <p><strong>ملخص:</strong> ${report.summary}</p>
+      <h4>التوصيات:</h4>
+      <ul style="text-align: right;">
+        ${report.recommendations.map(r => `<li>${r}</li>`).join('')}
+      </ul>
+    `;
+  } catch (error) {
+    console.error('فشل في جلب التقرير التنفيذي:', error);
+    document.getElementById('executive-report').textContent = 'تعذر تحميل التقرير.';
+  }
+}
     // جلب تنبؤ السيولة
 async function fetchCashPrediction(companyId) {
   try {
@@ -414,25 +547,38 @@ function addChatMessage(sender, message, color) {
   chatbox.scrollTop = chatbox.scrollHeight;
 }
 
-// رسالة ترحيب
+// تنفيذ كل الوظائف عند التحميل
 window.onload = function() {
   const user = localStorage.getItem('user');
   if (!user) {
     window.location.href = 'index.html';
   } else {
     const userData = JSON.parse(user);
+
+    // الأقسام السابقة
     fetchData();
+    fetchCashPrediction(userData.company_id);
     fetchInventoryAlerts(userData.company_id);
     fetchSupportTickets(userData.company_id);
     fetchMaintenanceAlert(userData.company_id);
-    
+
+    // الأقسام الجديدة
+    fetchMarketingInsights(userData.company_id);
+    fetchQualityReport(userData.company_id);
+    fetchSystemHealth();
+    fetchSystemAlerts(); // تظهر كتنبيه
+    fetchExecutiveReport(userData.company_id);
+
+    // استدعاء الدالة بعد جلب البيانات
+    // داخل window.onload أو بعد login
+    fetchCashPrediction(user.company_id);
+	  
     // رسالة ترحيب في الشات
     addChatMessage("الإحسان", "مرحبًا! أنا مساعدك الرقمي. كيف يمكنني مساعدتك اليوم؟", "green");
+
   }
 };
-// استدعاء الدالة بعد جلب البيانات
-// داخل window.onload أو بعد login
-fetchCashPrediction(user.company_id);
+	
     // --- بيانات تجريبية للرسم البياني ---
     const salesChartCtx = document.getElementById('salesChart').getContext('2d');
     new Chart(salesChartCtx, {

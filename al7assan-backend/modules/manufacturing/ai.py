@@ -1,4 +1,5 @@
 # modules/manufacturing/ai.py
+import pandas as pd
 import random
 
 def predict_maintenance(line_id: int, last_maintenance: str):

@@ -1,4 +1,5 @@
 # modules/solar/ai.py
+import pandas as pd
 def predict_energy(date, irradiance, temperature):
     """
     تنبؤ بالإنتاج بناءً على الطقس

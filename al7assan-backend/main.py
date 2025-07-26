@@ -5,6 +5,7 @@ from routes import auth, hr, finance  # سننشئها لاحقًا
 from routes import inventory, support, production, agent
 from database import engine
 from models import Base
+from modules.aquaculture.routes import router as aquaculture_router
 
 # إنشاء جميع الجداول
 Base.metadata.create_all(bind=engine)
@@ -31,6 +32,7 @@ app.include_router(inventory.router, prefix="/api")
 app.include_router(support.router, prefix="/api")
 app.include_router(production.router, prefix="/api")
 app.include_router(agent.router, prefix="/api") 
+app.include_router(aquaculture_router, prefix="/api")
 
 def root():
     return {"message": "مرحبًا بكم في نظام الإحسان - Backend يعمل!"}

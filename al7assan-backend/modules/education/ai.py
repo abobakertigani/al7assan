@@ -1,4 +1,6 @@
 # modules/education/ai.py
+import pandas as pd
+
 def predict_final_grade(midterm, attendance):
     return midterm * 0.4 + (attendance * 100) * 0.6
 

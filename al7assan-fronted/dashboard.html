@@ -158,7 +158,25 @@
 
   <!-- المحتوى الرئيسي -->
   <main>
-	<h2 class="page-title">مرحبًا بك في لوحة التحكم</h2>
+	    <!-- أضف التبويبات هنا -->
+  <div class="tabs" style="display: flex; margin: 20px 0; border-bottom: 1px solid #ddd; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+    <div class="tab" onclick="switchTab('overview')" style="padding: 15px 25px; cursor: pointer; font-weight: 600; color: #555;">نظرة عامة</div>
+    <div class="tab" onclick="switchTab('hr')" style="padding: 15px 25px; cursor: pointer; color: #555;">الموارد البشرية</div>
+    <div class="tab" onclick="switchTab('finance')" style="padding: 15px 25px; cursor: pointer; color: #555;">المحاسبة</div>
+    <div class="tab" onclick="switchTab('specialized')" style="padding: 15px 25px; cursor: pointer; color: #555;">النظام المخصص</div>
+  </div>
+
+  <!-- محتوى التبويبات سيظهر هنا -->
+  <div id="tab-content">
+    <!-- سيتم ملؤه ديناميكيًا -->
+  </div>
+<h2 class="page-title">مرحبًا بك في لوحة التحكم</h2>
+   <!-- القسم المخصص -->
+<div id="specialized-module" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin: 30px 0;">
+  <h3>النظام المخصص</h3>
+  <p>سيتم عرض النظام المناسب حسب مجال عملك.</p>
+</div>
+	  
     <!-- تنبؤ السيولة -->
 		<div class="kpi">
 		  <h3>السيولة المتوقعة (30 يوم)</h3>
@@ -310,6 +328,122 @@
   </footer>
 
   <script>
+	  // --- تحديد المجال ---
+const companyField = localStorage.getItem('company_field');
+const user = JSON.parse(localStorage.getItem('user'));
+
+if (!user) {
+  window.location.href = 'index.html';
+}
+
+// --- إخفاء الأقسام غير الضرورية ---
+function hideSection(selector) {
+  const el = document.querySelector(selector);
+  if (el) el.style.display = 'none';
+}
+
+// --- إظهار الأقسام حسب المجال ---
+function showSpecializedSection() {
+  const container = document.getElementById('specialized-module');
+  if (!container) return;
+
+  const modules = {
+    aquaculture: { title: "الاستزراع", desc: "مراقبة المزارع، التغذية، الصحة" },
+    manufacturing: { title: "الصناعات التحويلية", desc: "إدارة الإنتاج والجودة" },
+    solar: { title: "الطاقة الشمسية", desc: "مراقبة الألواح وإنتاج الطاقة" },
+    construction: { title: "الإنشاءات", desc: "إدارة المشاريع والجداول الزمنية" },
+    education: { title: "التعليم", desc: "إدارة الطلاب والمناهج" },
+    hse: { title: "الصحة والسلامة", desc: "التفتيشات، الحوادث، التدريب" },
+    logistics: { title: "النقل واللوجستيات", desc: "إدارة الأسطول والتوصيل" },
+    hospitality: { title: "السياحة والفندقة", desc: "الحجوزات، إدارة الغرف" },
+    security: { title: "السكيوريتي", desc: "المراقبة، الحوادث الأمنية" },
+    trading: { title: "التجارة", desc: "إدارة المخزون والمبيعات" }
+  };
+
+  const mod = modules[companyField];
+  if (mod) {
+    container.innerHTML = `
+      <h3>${mod.title}</h3>
+      <p style="color: #555; margin-bottom: 20px;">${mod.desc}</p>
+      <div id="module-content">
+        <p>جاري تحميل البيانات...</p>
+      </div>
+    `;
+    loadModuleData(); // جلب البيانات من الـ API
+  } else {
+    container.innerHTML = `<p>لا يوجد نظام مخصص مفعّل لهذا المجال.</p>`;
+  }
+}
+
+// --- جلب البيانات من الوحدة المخصصة ---
+async function loadModuleData() {
+  const content = document.getElementById('module-content');
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/${companyField}/alerts?company_id=${user.company_id}`);
+    const data = await res.json();
+    
+    if (data.alerts && data.alerts.length > 0) {
+      content.innerHTML = `
+        <h4>تنبيهات</h4>
+        <ul style="list-style: none; padding: 0;">
+          ${data.alerts.map(a => `
+            <li style="padding: 10px; margin: 5px 0; background: ${a.severity === 'high' ? '#f8d7da' : '#fff3cd'}; border-radius: 5px;">
+              <strong>${a.type}</strong>: ${a.message}
+            </li>
+          `).join('')}
+        </ul>
+      `;
+    } else {
+      content.innerHTML = '<p>لا توجد تنبيهات حاليًا.</p>';
+    }
+  } catch (error) {
+    content.innerHTML = '<p>تعذر تحميل البيانات.</p>';
+    console.error(error);
+  }
+}
+	  // --- جلب الموظفين ---
+async function fetchEmployees() {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/hr/employees?company_id=${user.company_id}`);
+    const employees = await res.json();
+    const tbody = document.querySelector('#employees-table tbody');
+    tbody.innerHTML = '';
+    employees.forEach(emp => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${emp.name}</td>
+        <td>${emp.position}</td>
+        <td>${emp.salary} ر.س</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('فشل في جلب الموظفين:', error);
+  }
+}
+
+// --- جلب الفواتير ---
+async function fetchInvoices() {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/finance/invoices?company_id=${user.company_id}`);
+    const invoices = await res.json();
+    const tbody = document.querySelector('#invoices-table tbody');
+    tbody.innerHTML = '';
+    invoices.forEach(inv => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${inv.invoice_number}</td>
+        <td>${inv.customer_name}</td>
+        <td>${inv.amount} ر.س</td>
+        <td><span style="color: ${inv.status === 'paid' ? 'green' : 'red'}">${inv.status === 'paid' ? 'مدفوعة' : 'غير مدفوعة'}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('فشل في جلب الفواتير:', error);
+  }
+}
+
 	  // جلب تحليل التسويق
 async function fetchMarketingInsights(companyId) {
   try {
@@ -579,27 +713,28 @@ window.onload = function() {
   }
 };
 	
-    // --- بيانات تجريبية للرسم البياني ---
-    const salesChartCtx = document.getElementById('salesChart').getContext('2d');
-    new Chart(salesChartCtx, {
-      type: 'bar',
-      data: {
-        labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو'],
-        datasets: [{
-          label: 'إجمالي المبيعات (ر.س)',
-          data: [12000, 19000, 15000, 22000, 18000],
-          backgroundColor: '#1e88e5'
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
+// --- رسم بياني ---
+function initChart() {
+  const ctx = document.getElementById('salesChart');
+  if (!ctx) return;
+  new Chart(ctx.getContext('2d'), {
+    type: 'bar',// --- رسم بياني ---
+function initChart() {
+  const ctx = document.getElementById('salesChart');
+  if (!ctx) return;
+  new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['يناير', 'فبراير', 'مارس', 'أبريل'],
+      datasets: [{
+        label: 'المبيعات (ر.س)',
+        data: [12000, 19000, 15000, 22000],
+        backgroundColor: '#1e88e5'
+      }]
+    },
+    options: { responsive: true }
+  });
+}
 
     // --- جلب البيانات من Backend ---
     async function fetchData() {
@@ -656,7 +791,99 @@ window.onload = function() {
         console.error('خطأ في جلب البيانات:', error);
         alert('تعذر الاتصال بالنظام. تأكد من تشغيل الخادم.');
       }
+	      // جلب التنبيهات من جميع الوحدات
+  const modules = ['aquaculture', 'manufacturing', 'solar', 'construction', 'education', 'hse', 'logistics', 'hospitality', 'security', 'trading'];
+  let totalAlerts = 0;
+
+  for (const mod of modules) {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/${mod}/alerts?company_id=${user.company_id}`);
+      const data = await res.json();
+      if (data.alerts) {
+        totalAlerts += data.alerts.length;
+      }
+    } catch (error) {
+      console.log(`فشل في جلب تنبيهات ${mod}`);
     }
+  }
+
+  document.getElementById('new-leads').textContent = totalAlerts;
+    }
+	  // --- دالة التبويبات ---
+function switchTab(tab) {
+  const tabContent = document.getElementById('tab-content');
+
+  // تنظيف المحتوى السابق
+  tabContent.innerHTML = '';
+
+  if (tab === 'overview') {
+    tabContent.innerHTML = `
+      <h3>نظرة عامة</h3>
+      <div class="kpi-cards">
+        <div class="kpi"><h3>إجمالي الموظفين</h3><div class="value" id="total-employees">0</div></div>
+        <div class="kpi"><h3>إجمالي الفواتير</h3><div class="value" id="total-invoices">0</div></div>
+        <div class="kpi"><h3>غير المسددة</h3><div class="value" style="color: var(--danger);" id="unpaid-amount">0 ر.س</div></div>
+        <div class="kpi"><h3>التنبيهات</h3><div class="value" style="color: var(--success);" id="new-leads">0</div></div>
+      </div>
+
+      <div class="chart-container">
+        <h3>إحصائيات المبيعات</h3>
+        <canvas id="salesChart"></canvas>
+      </div>
+    `;
+    fetchData(); // جلب البيانات
+    initChart(); // إنشاء الرسم البياني
+  }
+
+  else if (tab === 'hr') {
+    tabContent.innerHTML = `
+      <h3>الموظفين</h3>
+      <div class="table-container">
+        <table id="employees-table">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الوظيفة</th>
+              <th>الراتب</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    `;
+    fetchEmployees();
+  }
+
+  else if (tab === 'finance') {
+    tabContent.innerHTML = `
+      <h3>الفواتير</h3>
+      <div class="table-container">
+        <table id="invoices-table">
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th>
+              <th>العميل</th>
+              <th>المبلغ</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    `;
+    fetchInvoices();
+  }
+
+  else if (tab === 'specialized') {
+    tabContent.innerHTML = `
+      <h3 id="module-title">النظام المخصص</h3>
+      <div id="module-content">
+        <p>جاري تحميل النظام المخصص...</p>
+      </div>
+    `;
+    loadModuleData();
+  }
+}
 
     // --- تسجيل الخروج ---
     function logout() {
@@ -664,15 +891,18 @@ window.onload = function() {
       window.location.href = 'index.html';
     }
 
-    // --- تنفيذ الجلب عند التحميل ---
-    window.onload = function() {
-      const user = localStorage.getItem('user');
-      if (!user) {
-        window.location.href = 'index.html';
-      } else {
-        fetchData(); // جلب البيانات من الـ Backend
-      }
-    };
+window.onload = function() {
+  const savedTab = localStorage.getItem('activeTab') || 'overview';
+  switchTab(savedTab);
+
+  // حفظ التبويب الحالي
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      const tabName = e.target.getAttribute('onclick').match(/'(.+?)'/)[1];
+      localStorage.setItem('activeTab', tabName);
+    });
+  });
+};
   </script>
 
 </body>

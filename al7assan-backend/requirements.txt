@@ -5,6 +5,6 @@ psycopg2-binary==2.9.10
 pydantic
 python-jose[cryptography]
 passlib[bcrypt]
-pandas
-scikit-learn
-python-dotenv
+numpy==1.21.6
+pandas==1.5.3
+scikit-learn==1.2.2

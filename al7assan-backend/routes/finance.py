@@ -2,8 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from database import get_db
-from models import Invoice
+from database import engine, get_db
+from models import Base, Invoice
 from services.finance_analyzer import predict_cash_flow
 from schemas.finance import InvoiceCreate, InvoiceResponse
 

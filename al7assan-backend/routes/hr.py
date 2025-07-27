@@ -50,7 +50,7 @@ def get_employee(emp_id: int, db: Session = Depends(database.get_db)):
 
 
 @router.get("/hr-dashboard")
-def get_hr_dashboard(company_id: int, db: Session = Depends(get_db)):
+def get_hr_dashboard(company_id: int, db: Session = Depends(database.get_db)):
     employees = db.query(Employee).filter(Employee.company_id == company_id).all()
 
     return {
